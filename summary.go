@@ -28,7 +28,6 @@ func init() {
 	http.HandleFunc("/api/summary", summary)
 }
 func summary(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	sse := NewSSE(w, r.Context())
 	Summary.Add()
 	defer Summary.Done()
