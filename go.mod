@@ -1,4 +1,4 @@
-module github.com/Monibuca/plugin-summary/v3
+module github.com/Monibuca/plugin-summary
 
 go 1.13
 
