@@ -1,4 +1,4 @@
-module github.com/Monibuca/plugin-summary
+module gitee.com/m7s/plugin-summary
 
 go 1.13
 
