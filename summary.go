@@ -179,10 +179,6 @@ func (s *ServerSummary) collect() {
 	//fmt.Printf("        HD        : %v GB  Free: %v GB Usage:%f%%\n", d.Total/1024/1024/1024, d.Free/1024/1024/1024, d.UsedPercent)
 	//fmt.Printf("        OS        : %v(%v)   %v  \n", n.Platform, n.PlatformFamily, n.PlatformVersion)
 	//fmt.Printf("        Hostname  : %v  \n", n.Hostname)
-	s.Streams = nil
-	Streams.Range(func(k, v interface{}) bool {
-		s.Streams = append(s.Streams, v.(*Stream))
-		return true
-	})
+	s.Streams = Streams.ToList()
 	return
 }
