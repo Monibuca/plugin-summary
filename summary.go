@@ -85,7 +85,7 @@ type NetWorkInfo struct {
 
 //StartSummary 开始定时采集数据，每秒一次
 func (s *ServerSummary) StartSummary() {
-	ticker := time.NewTicker(time.Second * config.SampleRate)
+	ticker := time.NewTicker(time.Second * time.Duration(config.SampleRate))
 	s.control = make(chan bool)
 	s.reportChan = make(chan *ServerSummary)
 	for {
