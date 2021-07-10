@@ -15,8 +15,9 @@ import (
 
 // Summary 系统摘要数据
 var Summary ServerSummary
-var config struct {
-}
+var config = struct {
+	SampleRate int
+}{1}
 
 func init() {
 	plugin := &PluginConfig{
@@ -84,7 +85,7 @@ type NetWorkInfo struct {
 
 //StartSummary 开始定时采集数据，每秒一次
 func (s *ServerSummary) StartSummary() {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(time.Second * config.SampleRate)
 	s.control = make(chan bool)
 	s.reportChan = make(chan *ServerSummary)
 	for {
@@ -97,13 +98,13 @@ func (s *ServerSummary) StartSummary() {
 			if v {
 				if s.ref++; s.ref == 1 {
 					log.Println("start report summary")
-					TriggerHook(Hook{"Summary", true})
+					TriggerHook("Summary", true)
 				}
 			} else {
 				if s.ref--; s.ref == 0 {
 					s.lastNetWork = nil
 					log.Println("stop report summary")
-					TriggerHook(Hook{"Summary", false})
+					TriggerHook("Summary", false)
 				}
 			}
 		case report := <-s.reportChan:
