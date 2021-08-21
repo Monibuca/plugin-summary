@@ -135,7 +135,6 @@ func (s *ServerSummary) Report(slave *ServerSummary) {
 func (s *ServerSummary) collect() {
 	v, _ := mem.VirtualMemory()
 	//c, _ := cpu.Info()
-	cc, _ := cpu.Percent(time.Second, false)
 	d, _ := disk.Usage("/")
 	//n, _ := host.Info()
 	nv, _ := net.IOCounters(true)
@@ -158,7 +157,9 @@ func (s *ServerSummary) collect() {
 	//	cores := sub_cpu.Cores
 	//	fmt.Printf("        CPU       : %v   %v cores \n", modelname, cores)
 	//}
-	s.CPUUsage = cc[0]
+	if cc, _ := cpu.Percent(time.Second, false); len(cc) > 0 {
+		s.CPUUsage = cc[0]
+	}
 	s.HardDisk.Free = d.Free / 1024 / 1024 / 1024
 	s.HardDisk.Total = d.Total / 1024 / 1024 / 1024
 	s.HardDisk.Used = d.Used / 1024 / 1024 / 1024
