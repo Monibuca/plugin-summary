@@ -20,12 +20,11 @@ var config = struct {
 }{1}
 
 func init() {
-	plugin := &PluginConfig{
+	plugin := PluginConfig{
 		Name:   "Summary",
 		Config: &config,
-		Run:    Summary.StartSummary,
 	}
-	InstallPlugin(plugin)
+	plugin.Install(Summary.StartSummary)
 	http.HandleFunc("/api/summary", summary)
 }
 func summary(w http.ResponseWriter, r *http.Request) {
