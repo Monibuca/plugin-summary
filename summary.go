@@ -1,8 +1,10 @@
 package plugin_summary
 
 import (
+	"github.com/gogf/gf/text/gregex"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	. "github.com/Monibuca/engine/v3"
@@ -17,12 +19,18 @@ import (
 var Summary ServerSummary
 var config = struct {
 	SampleRate int
-}{1}
+	NetAdapter string //在容器化设备会有很多无效的虚拟网卡，只读取有意义的网卡
+}{1, ""}
 
 func init() {
 	plugin := PluginConfig{
 		Name:   "Summary",
 		Config: &config,
+		HotConfig: map[string]func(interface{}){
+			"NetAdapter": func(v interface{}) {
+				config.NetAdapter = v.(string)
+			},
+		},
 	}
 	plugin.Install(Summary.StartSummary)
 	http.HandleFunc("/api/summary", summary)
@@ -133,29 +141,14 @@ func (s *ServerSummary) Report(slave *ServerSummary) {
 }
 func (s *ServerSummary) collect() {
 	v, _ := mem.VirtualMemory()
-	//c, _ := cpu.Info()
 	d, _ := disk.Usage("/")
-	//n, _ := host.Info()
 	nv, _ := net.IOCounters(true)
-	//boottime, _ := host.BootTime()
-	//btime := time.Unix(int64(boottime), 0).Format("2006-01-02 15:04:05")
+
 	s.Memory.Total = v.Total / 1024 / 1024
 	s.Memory.Free = v.Available / 1024 / 1024
 	s.Memory.Used = v.Used / 1024 / 1024
 	s.Memory.Usage = v.UsedPercent
-	//fmt.Printf("        Mem       : %v MB  Free: %v MB Used:%v Usage:%f%%\n", v.Total/1024/1024, v.Available/1024/1024, v.Used/1024/1024, v.UsedPercent)
-	//if len(c) > 1 {
-	//	for _, sub_cpu := range c {
-	//		modelname := sub_cpu.ModelName
-	//		cores := sub_cpu.Cores
-	//		fmt.Printf("        CPU       : %v   %v cores \n", modelname, cores)
-	//	}
-	//} else {
-	//	sub_cpu := c[0]
-	//	modelname := sub_cpu.ModelName
-	//	cores := sub_cpu.Cores
-	//	fmt.Printf("        CPU       : %v   %v cores \n", modelname, cores)
-	//}
+
 	if cc, _ := cpu.Percent(time.Second, false); len(cc) > 0 {
 		s.CPUUsage = cc[0]
 	}
@@ -174,12 +167,20 @@ func (s *ServerSummary) collect() {
 		}
 	}
 	s.lastNetWork = s.NetWork
-	//fmt.Printf("        Network: %v bytes / %v bytes\n", nv[0].BytesRecv, nv[0].BytesSent)
-	//fmt.Printf("        SystemBoot:%v\n", btime)
-	//fmt.Printf("        CPU Used    : used %f%% \n", cc[0])
-	//fmt.Printf("        HD        : %v GB  Free: %v GB Usage:%f%%\n", d.Total/1024/1024/1024, d.Free/1024/1024/1024, d.UsedPercent)
-	//fmt.Printf("        OS        : %v(%v)   %v  \n", n.Platform, n.PlatformFamily, n.PlatformVersion)
-	//fmt.Printf("        Hostname  : %v  \n", n.Hostname)
 	s.Streams = Streams.ToList()
 	return
+}
+
+//NetAdapter 通过匹配和正则判断要过滤的无效网卡
+func isNetAdapter(name string) bool {
+	if name == "" {
+		return true
+	}
+
+	//正则用@作正则修饰符
+	if !strings.Contains(name, "@") {
+		return strings.Contains(name, config.NetAdapter)
+	}
+
+	return gregex.IsMatchString(config.NetAdapter, name)
 }
