@@ -158,6 +158,10 @@ func (s *ServerSummary) collect() {
 	s.HardDisk.Usage = d.UsedPercent
 	s.NetWork = make([]NetWorkInfo, len(nv))
 	for i, n := range nv {
+		if !isNetAdapter(n.Name) {
+			continue
+		}
+
 		s.NetWork[i].Name = n.Name
 		s.NetWork[i].Receive = n.BytesRecv
 		s.NetWork[i].Sent = n.BytesSent
@@ -178,9 +182,9 @@ func isNetAdapter(name string) bool {
 	}
 
 	//正则用@作正则修饰符
-	if !strings.Contains(name, "@") {
+	if !strings.Contains(config.NetAdapter, "@") {
 		return strings.Contains(name, config.NetAdapter)
 	}
 
-	return gregex.IsMatchString(config.NetAdapter, name)
+	return gregex.IsMatchString(strings.Trim(config.NetAdapter, "@"), name)
 }

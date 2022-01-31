@@ -9,8 +9,17 @@
 ```toml
 [Summary]
 SampleRate = 1
+NetAdapter = '@en\d+@'
 ```
+
+```toml
+[Summary]
+SampleRate = 1
+NetAdapter = "eth"
+```
+
 - SampleRate 采样率，单位秒，即每一秒采样一次
+- NetAdapter 只收集指定的网卡数据，用于过滤机器上的虚拟网卡，支持正则
 
 ## 数据结构
 
