@@ -74,7 +74,7 @@ type ServerSummary struct {
 	}
 	NetWork     []NetWorkInfo
 	Streams     []*Stream
-	lastNetWork []NetWorkInfo
+	lastNetWork []net.IOCountersStat
 	ref         int
 	control     chan bool
 	reportChan  chan *ServerSummary
@@ -156,21 +156,22 @@ func (s *ServerSummary) collect() {
 	s.HardDisk.Total = d.Total / 1024 / 1024 / 1024
 	s.HardDisk.Used = d.Used / 1024 / 1024 / 1024
 	s.HardDisk.Usage = d.UsedPercent
-	s.NetWork = make([]NetWorkInfo, len(nv))
+	s.NetWork = make([]NetWorkInfo, 0)
 	for i, n := range nv {
-		if !isNetAdapter(n.Name) {
+		if n.BytesRecv == 0 && !isNetAdapter(n.Name) {
 			continue
 		}
-
-		s.NetWork[i].Name = n.Name
-		s.NetWork[i].Receive = n.BytesRecv
-		s.NetWork[i].Sent = n.BytesSent
+		info := NetWorkInfo{}
+		info.Name = n.Name
+		info.Receive = n.BytesRecv
+		info.Sent = n.BytesSent
 		if s.lastNetWork != nil && len(s.lastNetWork) > i {
-			s.NetWork[i].ReceiveSpeed = n.BytesRecv - s.lastNetWork[i].Receive
-			s.NetWork[i].SentSpeed = n.BytesSent - s.lastNetWork[i].Sent
+			info.ReceiveSpeed = n.BytesRecv - s.lastNetWork[i].BytesRecv
+			info.SentSpeed = n.BytesSent - s.lastNetWork[i].BytesSent
 		}
+		s.NetWork = append(s.NetWork, info)
 	}
-	s.lastNetWork = s.NetWork
+	s.lastNetWork = nv
 	s.Streams = Streams.ToList()
 	return
 }
