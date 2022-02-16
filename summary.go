@@ -158,7 +158,7 @@ func (s *ServerSummary) collect() {
 	s.HardDisk.Usage = d.UsedPercent
 	s.NetWork = make([]NetWorkInfo, 0)
 	for i, n := range nv {
-		if n.BytesRecv == 0 && !isNetAdapter(n.Name) {
+		if n.BytesRecv == 0 || !isNetAdapter(n.Name) {
 			continue
 		}
 		info := NetWorkInfo{}
